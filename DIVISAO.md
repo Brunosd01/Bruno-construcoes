@@ -192,3 +192,19 @@ Rode **uma de cada vez**, pois quase todas encostam em `main.js` ou em materiais
 ## Se uma IA travar
 
 Se duas tentativas seguidas não resolverem, **não insista**. Passe a tarefa para a IA A com o relatório do que já foi tentado e o erro exato.
+
+---
+
+## Copilot (GitHub) — papel E
+
+O Copilot entra como **revisor automático de PR** e **ajudante de edição pequena**. Ele não toma tarefas de fase inteira.
+
+| Uso                                  | Como                                                                                                                                                                              |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Revisão automática de PR**         | No PR, adicione o Copilot como revisor. Ele lê `.github/copilot-instructions.md`. Serve como primeira triagem **antes** da revisão da IA A (Luna 6).                              |
+| **Autocompletar e chat no editor**   | Para ajustes pequenos que você mesmo faz, como renomear, escrever um comentário ou corrigir um erro de lint.                                                                      |
+| **Agente de codificação (opcional)** | Só para issues pequenas e mecânicas que não toquem `main.js`, como textos do `CONTRIBUTING.md`/README. Se usar, abra a issue com a tarefa e os arquivos permitidos escritos nela. |
+
+Fluxo de revisão atualizado: IA trabalha na branch → você abre o PR → **Copilot faz a triagem** → IA A revisa o que sobrou → você faz o merge.
+
+Arquivo de regras: `.github/copilot-instructions.md`.
