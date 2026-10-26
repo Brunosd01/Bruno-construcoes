@@ -5,6 +5,7 @@
  * O prédio exibe apenas as arestas do volume externo para um visual limpo e encorpado.
  * No 1º andar, as janelas centrais se unem em uma fachada envidraçada integrada à porta.
  * Janelas selecionadas contam com cortinas delicadas em linhas.
+ * Cada quarto possui uma luminária pendente de teto em linhas brancas e halo de luz.
  */
 
 import * as THREE from 'three';
@@ -80,7 +81,77 @@ function createCurtains(winW, winH, lineMat) {
 }
 
 /**
- * Cria e retorna o grupo do prédio com todas as arestas, janelas e hitboxes.
+ * Cria a geometria da luminária pendente de teto para um quarto.
+ * @param {number} x - Posição X no quarto
+ * @param {number} ceilingY - Altura do teto do andar
+ * @param {number} z - Posição Z dentro do quarto
+ * @param {THREE.Material} lineMat - Material base de linha
+ * @param {THREE.Texture} lampTex - Textura para o halo de luz
+ */
+function createRoomLamp(x, ceilingY, z, lineMat, lampTex) {
+  const points = [];
+  const dropLen = 0.48;
+  const shadeTopY = ceilingY - dropLen;
+  const shadeH = 0.15;
+  const shadeBotY = shadeTopY - shadeH;
+  const shadeTopHalfW = 0.05;
+  const shadeBotHalfW = 0.15;
+
+  // 1. Fio pendente descendo do teto
+  points.push(
+    new THREE.Vector3(x, ceilingY, z),
+    new THREE.Vector3(x, shadeTopY, z)
+  );
+
+  // 2. Cúpula do abajur pendente
+  points.push(
+    new THREE.Vector3(x - shadeTopHalfW, shadeTopY, z),
+    new THREE.Vector3(x + shadeTopHalfW, shadeTopY, z),
+    new THREE.Vector3(x - shadeBotHalfW, shadeBotY, z),
+    new THREE.Vector3(x + shadeBotHalfW, shadeBotY, z),
+    new THREE.Vector3(x - shadeTopHalfW, shadeTopY, z),
+    new THREE.Vector3(x - shadeBotHalfW, shadeBotY, z),
+    new THREE.Vector3(x + shadeTopHalfW, shadeTopY, z),
+    new THREE.Vector3(x + shadeBotHalfW, shadeBotY, z)
+  );
+
+  // 3. Bulbo da lâmpada
+  const bulbCenterY = shadeBotY - 0.05;
+  const bulbR = 0.04;
+  points.push(
+    new THREE.Vector3(x, bulbCenterY + bulbR, z),
+    new THREE.Vector3(x + bulbR, bulbCenterY, z),
+    new THREE.Vector3(x + bulbR, bulbCenterY, z),
+    new THREE.Vector3(x, bulbCenterY - bulbR, z),
+    new THREE.Vector3(x, bulbCenterY - bulbR, z),
+    new THREE.Vector3(x - bulbR, bulbCenterY, z),
+    new THREE.Vector3(x - bulbR, bulbCenterY, z),
+    new THREE.Vector3(x, bulbCenterY + bulbR, z)
+  );
+
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const mat = lineMat.clone();
+  mat.opacity = 0.65;
+  const lines = new THREE.LineSegments(geo, mat);
+
+  // Halo suave para quando a lâmpada acender
+  const glowMat = new THREE.SpriteMaterial({
+    map: lampTex,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    opacity: 0,
+    color: 0xffffff,
+  });
+  const glow = new THREE.Sprite(glowMat);
+  glow.scale.set(0.9, 0.9, 1);
+  glow.position.set(x, bulbCenterY, z + 0.01);
+
+  return { lines, glow, glowMat, bulbPos: new THREE.Vector3(x, bulbCenterY, z) };
+}
+
+/**
+ * Cria e retorna o grupo do prédio com todas as arestas, janelas, lâmpadas e hitboxes.
  * @returns {{ group: THREE.Group, apartments: Map<string, object>, doorLines: THREE.Object3D, doorHitbox: THREE.Mesh, totalWidth: number, totalHeight: number }}
  */
 export function createBuilding() {
@@ -109,6 +180,20 @@ export function createBuilding() {
     side: THREE.DoubleSide,
   });
 
+  // Textura compartilhada de halo para as lâmpadas dos quartos
+  const lampCanvas = document.createElement('canvas');
+  lampCanvas.width = 64;
+  lampCanvas.height = 64;
+  const lampCtx = lampCanvas.getContext('2d');
+  const lampGrad = lampCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  lampGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  lampGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0.45)');
+  lampGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.1)');
+  lampGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  lampCtx.fillStyle = lampGrad;
+  lampCtx.fillRect(0, 0, 64, 64);
+  const lampTex = new THREE.CanvasTexture(lampCanvas);
+
   // ─── Contorno externo do prédio (somente as arestas do prédio) ───
   const outerGeo = new THREE.BoxGeometry(totalWidth, totalHeight, unitDepth);
   const outerEdges = new THREE.EdgesGeometry(outerGeo);
@@ -116,7 +201,7 @@ export function createBuilding() {
   outerLines.position.set(0, totalHeight / 2, 0);
   group.add(outerLines);
 
-  // ─── Apartamentos (janelas na fachada frontal + hitboxes) ──
+  // ─── Apartamentos (janelas na fachada frontal + lâmpadas + hitboxes) ──
   const winW = unitWidth * 0.6;
   const winH = floorHeight * 0.55;
 
@@ -133,6 +218,7 @@ export function createBuilding() {
     for (let u = 1; u <= unitsPerFloor; u++) {
       const x = -totalWidth / 2 + (u - 0.5) * unitWidth;
       const y = (f - 0.5) * floorHeight;
+      const ceilingY = f * floorHeight;
       const key = `${f}-${u}`;
 
       // No 1º andar, posições 2 e 3 formam a entrada unificada integrada à porta
@@ -154,6 +240,11 @@ export function createBuilding() {
         curtains.position.set(x, y, frontZ + 0.02);
         group.add(curtains);
       }
+
+      // Lâmpada do quarto pendurada do teto
+      const roomLamp = createRoomLamp(x, ceilingY, frontZ - 0.25, lineMat, lampTex);
+      group.add(roomLamp.lines);
+      group.add(roomLamp.glow);
 
       // Hitbox invisível para raycasting
       const hitGeo = new THREE.PlaneGeometry(unitWidth * 0.9, floorHeight * 0.85);
@@ -180,6 +271,9 @@ export function createBuilding() {
         hitbox,
         glow,
         glowMat,
+        lampLines: roomLamp.lines,
+        lampGlow: roomLamp.glow,
+        lampGlowMat: roomLamp.glowMat,
         floor: f,
         position: u,
         x, y,
@@ -258,8 +352,12 @@ export function createBuilding() {
   group.add(doorHitbox);
 
   // Registrar as duas metades como apartamentos 1-2 e 1-3
-  // Apartamento 1-2 (lado esquerdo da entrada)
+  // Lâmpada para o hall 1-2
   const apt12X = -unitWidth / 2; // -1.5
+  const lamp12 = createRoomLamp(apt12X, floorHeight, frontZ - 0.25, lineMat, lampTex);
+  group.add(lamp12.lines);
+  group.add(lamp12.glow);
+
   const apt12Hit = new THREE.Mesh(
     new THREE.PlaneGeometry(halfEntW - halfDoorW + 0.3, entranceHeight * 0.9),
     hitboxMat
@@ -287,6 +385,9 @@ export function createBuilding() {
     hitbox: apt12Hit,
     glow: apt12Glow,
     glowMat: apt12GlowMat,
+    lampLines: lamp12.lines,
+    lampGlow: lamp12.glow,
+    lampGlowMat: lamp12.glowMat,
     floor: 1,
     position: 2,
     x: apt12X,
@@ -298,8 +399,12 @@ export function createBuilding() {
     morador: null,
   });
 
-  // Apartamento 1-3 (lado direito da entrada)
+  // Lâmpada para o hall 1-3
   const apt13X = unitWidth / 2; // +1.5
+  const lamp13 = createRoomLamp(apt13X, floorHeight, frontZ - 0.25, lineMat, lampTex);
+  group.add(lamp13.lines);
+  group.add(lamp13.glow);
+
   const apt13Hit = new THREE.Mesh(
     new THREE.PlaneGeometry(halfEntW - halfDoorW + 0.3, entranceHeight * 0.9),
     hitboxMat
@@ -327,6 +432,9 @@ export function createBuilding() {
     hitbox: apt13Hit,
     glow: apt13Glow,
     glowMat: apt13GlowMat,
+    lampLines: lamp13.lines,
+    lampGlow: lamp13.glow,
+    lampGlowMat: lamp13.glowMat,
     floor: 1,
     position: 3,
     x: apt13X,

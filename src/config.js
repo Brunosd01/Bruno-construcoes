@@ -20,15 +20,15 @@ export const BUILDING = {
 export const CAMERA = {
   fov: 45,
   near: 0.1,
-  far: 500,
+  far: 800,
   initialDistance: 35,     // Distância inicial da câmera ao prédio
   initialAngleY: 0.25,    // Ângulo vertical inicial (rad)
   orbitDamping: 0.08,     // Inércia/damping da órbita
-  orbitMaxPolar: Math.PI * 0.48,   // Não passa abaixo do chão
-  orbitMinPolar: Math.PI * 0.05,   // Não vai reto para cima
-  orbitMaxAzimuth: Math.PI * (80 / 180), // ±80° da frente
-  zoomMin: 15,
-  zoomMax: 60,
+  orbitMaxPolar: Math.PI * 0.495,  // Não passa abaixo do chão
+  orbitMinPolar: 0.02,             // Quase reto para cima
+  orbitMaxAzimuth: Infinity,       // Órbita livre em 360°
+  zoomMin: 0.5,           // Zoom livre (permite chegar bem perto)
+  zoomMax: 500,           // Zoom livre (permite enquadramento amplo)
   autoRotate: false,      // Rotação automática (padrão: desligada)
   autoRotateSpeed: 0.1,   // Velocidade se ligada
   entryAnimDuration: 2.0, // Duração da animação de entrada (s)

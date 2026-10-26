@@ -86,14 +86,20 @@ moradores.forEach((m, idx) => {
   apt.color = m.corLuz;
   apt.morador = m;
 
-  // Cor da janela
+  // Cor da janela e da lâmpada do quarto
   const color = new THREE.Color(m.corLuz);
   apt.glowMat.color = color;
+  if (apt.lampGlowMat) {
+    apt.lampGlowMat.color = color;
+  }
 
   // Escalonamento do fade-in
   const delay = idx * ANIM.lightStagger;
   setTimeout(() => {
     apt.targetOpacity = 0.45;
+    if (apt.lampGlowMat) {
+      apt.lampGlowMat.opacity = 0.85;
+    }
 
     // Pessoinha após a luz (com variedade de atividades: computador, cama ou em pé)
     setTimeout(() => {
@@ -204,8 +210,7 @@ renderer.domElement.addEventListener('click', (e) => {
   const { type } = hit.object.userData;
 
   if (type === 'post') {
-    const side = hit.object.userData.side;
-    const post = posts.find(p => p.hitbox.userData.side === side);
+    const post = posts.find(p => p.hitbox === hit.object);
     if (post) {
       post.on = !post.on;
       // Animação suave feita no loop
@@ -265,8 +270,7 @@ renderer.domElement.addEventListener('touchstart', (e) => {
         mobileZoom.zoomTo(key);
       }
     } else if (type === 'post') {
-      const side = hit.object.userData.side;
-      const post = posts.find(p => p.hitbox.userData.side === side);
+      const post = posts.find(p => p.hitbox === hit.object);
       if (post) post.on = !post.on;
     } else if (type === 'trashcan') {
       trashcan.targetLidAngle = trashcan.targetLidAngle > 0.1 ? 0 : Math.PI * 0.6;
@@ -345,14 +349,17 @@ function animate() {
       apt.glowMat.opacity = apt.currentOpacity;
     }
 
-    // Pulsação sutil dos quartos acesos
+    // Pulsação sutil dos quartos acesos e de suas lâmpadas
     if (apt.lit && !prefersReduced) {
       const pulse = Math.sin(elapsed * 0.5 + apt.x * 0.3) * 0.03;
       apt.glowMat.opacity = apt.currentOpacity + pulse;
+      if (apt.lampGlowMat) {
+        apt.lampGlowMat.opacity = 0.85 + pulse * 1.5;
+      }
     }
   });
 
-  // ── Pessoinhas: fade-in e respiração ──
+  // ── Pessoinhas: fade-in e atividade (estáticas, sem seguir a câmera) ──
   for (const person of persons) {
     const ud = person.group.userData;
     ud.time += dt;
@@ -367,12 +374,8 @@ function animate() {
       ud.glowMat.opacity = ud.currentOpacity * 0.5;
     }
 
-    // Billboard Y (encarar a câmera)
-    person.group.lookAt(
-      camera.position.x,
-      person.group.position.y + BUILDING.floorHeight * 0.3,
-      camera.position.z
-    );
+    // Bonequinhos estáticos na orientação do quarto (não seguem a câmera)
+    person.group.rotation.y = 0;
 
     // Animação da atividade (balanço, digitação ou respiração na cama)
     if (!prefersReduced) {
@@ -450,6 +453,11 @@ function animate() {
   // ── Mobile zoom ──
   if (mobileZoom) {
     mobileZoom.update(dt);
+  }
+
+  // ── Movimentação livre por teclado (WASD / Setas / Q e E) ──
+  if (controls.updateKeyboard) {
+    controls.updateKeyboard(dt);
   }
 
   // ── Render ──
