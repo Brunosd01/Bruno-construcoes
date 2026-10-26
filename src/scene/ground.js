@@ -109,9 +109,11 @@ export function createSidewalk() {
 }
 
 /**
- * Cria um poste de luz.
+ * Cria um poste de luz em uma dada posição Z.
+ * @param {number} side - Lado da calçada (-1 para esquerda, 1 para direita)
+ * @param {number} zOffset - Distância para frente a partir da fachada (frontZ + zOffset)
  */
-export function createPost(side = 1) {
+export function createPost(side = 1, zOffset = 3.0) {
   const group = new THREE.Group();
   const { height, armLength } = POSTS;
   const frontZ = BUILDING.unitDepth / 2;
@@ -130,7 +132,7 @@ export function createPost(side = 1) {
   ]);
   group.add(new THREE.Line(poleGeo, mat));
 
-  // Braço curvo (curva de Bézier)
+  // Braço curvo (curva de Bézier apontando para dentro da calçada)
   const curve = new THREE.QuadraticBezierCurve3(
     new THREE.Vector3(0, height, 0),
     new THREE.Vector3(0, height + 0.3, 0),
@@ -177,17 +179,31 @@ export function createPost(side = 1) {
   haloSprite.position.set(lampX, lampY - 0.15, 0);
   group.add(haloSprite);
 
-  group.position.set(x, 0, frontZ + 1.5);
+  // Posicionar o poste avançado para a frente da fachada
+  group.position.set(x, 0, frontZ + zOffset);
 
   // Hitbox invisível para interação
   const hitGeo = new THREE.CylinderGeometry(0.4, 0.4, height, 6);
   const hitMat = new THREE.MeshBasicMaterial({ visible: false });
   const hitbox = new THREE.Mesh(hitGeo, hitMat);
   hitbox.position.set(0, height / 2, 0);
-  hitbox.userData = { type: 'post', side };
+  hitbox.userData = { type: 'post', side, zOffset };
   group.add(hitbox);
 
   return { group, haloMat, haloSprite, hitbox, on: true };
+}
+
+/**
+ * Cria todos os 3 pares de postes (6 postes no total) ao longo da calçada.
+ */
+export function createAllPosts() {
+  const zOffsets = [2.5, 6.5, 10.5];
+  const posts = [];
+  zOffsets.forEach((zOff) => {
+    posts.push(createPost(-1, zOff));
+    posts.push(createPost(1, zOff));
+  });
+  return posts;
 }
 
 /**

@@ -12,7 +12,7 @@ import { BUILDING, COLORS, ANIM, PERSON, STARS, MOON } from './config.js';
 import { setupCamera } from './scene/cameraSetup.js';
 import { createBuilding } from './scene/building.js';
 import { createStars, createMoon } from './scene/sky.js';
-import { createGround, createSidewalk, createPost, createTrashcan } from './scene/ground.js';
+import { createGround, createSidewalk, createPost, createAllPosts, createTrashcan } from './scene/ground.js';
 import { createPerson } from './scene/person.js';
 import { parseApartment } from './data/parseApartment.js';
 import { loadMoradores } from './data/loadMoradores.js';
@@ -46,12 +46,9 @@ scene.add(ground);
 const sidewalk = createSidewalk();
 scene.add(sidewalk);
 
-// ─── Postes ────────────────────────────────────────────────────
-const postLeft = createPost(-1);
-const postRight = createPost(1);
-scene.add(postLeft.group);
-scene.add(postRight.group);
-const posts = [postLeft, postRight];
+// ─── Postes (3 pares ao longo da calçada, avançados para frente) ─
+const posts = createAllPosts();
+posts.forEach(p => scene.add(p.group));
 
 // ─── Lixeira ───────────────────────────────────────────────────
 const trashcan = createTrashcan();
@@ -98,10 +95,11 @@ moradores.forEach((m, idx) => {
   setTimeout(() => {
     apt.targetOpacity = 0.45;
 
-    // Pessoinha após a luz
+    // Pessoinha após a luz (com variedade de atividades: computador, cama ou em pé)
     setTimeout(() => {
       const phase = Math.random() * Math.PI * 2;
-      const person = createPerson(apt.x, parsed.floor, m.corLuz, phase);
+      const act = idx % 3 === 0 ? 'computer' : (idx % 3 === 1 ? 'bed' : 'standing');
+      const person = createPerson(apt.x, parsed.floor, m.corLuz, phase, act);
       scene.add(person.group);
       person.group.userData.targetOpacity = 0.85;
       persons.push(person);
@@ -376,10 +374,14 @@ function animate() {
       camera.position.z
     );
 
-    // Respiração (balanço sutil)
+    // Animação da atividade (balanço, digitação ou respiração na cama)
     if (!prefersReduced) {
-      const sway = Math.sin(ud.time * 0.8 + ud.phase) * 0.03;
-      person.group.rotation.z = sway;
+      if (ud.update) {
+        ud.update(elapsed, dt);
+      } else {
+        const sway = Math.sin(ud.time * 0.8 + ud.phase) * 0.03;
+        person.group.rotation.z = sway;
+      }
     }
   }
 

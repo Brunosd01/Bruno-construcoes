@@ -21,7 +21,8 @@ export function createStars(isLite = false) {
     const r = STARS.radius * (0.9 + Math.random() * 0.2);
 
     positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-    positions[i * 3 + 1] = Math.abs(r * Math.cos(phi)); // Só hemisfério superior
+    // Distribui o céu um pouco mais baixo para melhor enquadramento com a lua
+    positions[i * 3 + 1] = Math.abs(r * Math.cos(phi)) * 0.65;
     positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
 
     sizes[i] = STARS.minSize + Math.random() * (STARS.maxSize - STARS.minSize);

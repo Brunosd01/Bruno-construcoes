@@ -9,7 +9,7 @@ export const BUILDING = {
   unitsPerFloor: 4,       // Apartamentos por andar (fachada frontal)
   floorHeight: 2.4,       // Altura de cada andar (unidades 3D)
   unitWidth: 3.0,         // Largura de cada apartamento
-  unitDepth: 4.0,         // Profundidade do prédio
+  unitDepth: 8.0,         // Profundidade do prédio (mais encorpado)
   wallThickness: 0.15,    // Espessura das paredes (visual)
   windowInset: 0.3,       // Recuo da janela em relação à fachada
   doorWidth: 1.8,         // Largura da porta (térreo, centro)
@@ -61,7 +61,7 @@ export const STARS = {
 // ─── Lua ───────────────────────────────────────────────────────
 export const MOON = {
   radius: 6,
-  position: { x: 60, y: 70, z: -80 },
+  position: { x: 26, y: 30, z: -35 },
   breatheSpeed: 0.15,         // Velocidade do "respirar" do brilho
   breatheAmount: 0.15,        // Intensidade da variação
 };
