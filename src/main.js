@@ -151,7 +151,7 @@ building.apartments.forEach((apt) => {
   hitboxes.push(apt.hitbox);
 });
 hitboxes.push(building.doorHitbox);
-posts.forEach(p => hitboxes.push(p.hitbox));
+posts.forEach((post) => hitboxes.push(...post.hitboxes));
 hitboxes.push(trashcan.hitbox);
 
 let hoveredApt = null;
@@ -210,7 +210,7 @@ renderer.domElement.addEventListener('click', (e) => {
   const { type } = hit.object.userData;
 
   if (type === 'post') {
-    const post = posts.find(p => p.hitbox === hit.object);
+    const post = hit.object.userData.post;
     if (post) {
       post.on = !post.on;
       // Animação suave feita no loop
@@ -270,7 +270,7 @@ renderer.domElement.addEventListener('touchstart', (e) => {
         mobileZoom.zoomTo(key);
       }
     } else if (type === 'post') {
-      const post = posts.find(p => p.hitbox === hit.object);
+      const post = hit.object.userData.post;
       if (post) post.on = !post.on;
     } else if (type === 'trashcan') {
       trashcan.targetLidAngle = trashcan.targetLidAngle > 0.1 ? 0 : Math.PI * 0.6;
@@ -323,7 +323,8 @@ function animate() {
 
   // ── Controles ──
   if (!mobileMode) {
-    controls.update();
+    controls.updateCamera(dt);
+    renderer.domElement.style.opacity = controls.wrapFade ?? 1;
   }
 
   // ── Estrelas cintilação ──
@@ -393,6 +394,9 @@ function animate() {
     const target = post.on ? 0.6 : 0.02;
     const current = post.haloMat.opacity;
     post.haloMat.opacity += (target - current) * 0.06;
+
+    const lampTarget = post.on ? 0.95 : 0.08;
+    post.lampMat.opacity += (lampTarget - post.lampMat.opacity) * 0.06;
   }
 
   // ── Lixeira: tampa ──
@@ -453,11 +457,6 @@ function animate() {
   // ── Mobile zoom ──
   if (mobileZoom) {
     mobileZoom.update(dt);
-  }
-
-  // ── Movimentação livre por teclado (WASD / Setas / Q e E) ──
-  if (controls.updateKeyboard) {
-    controls.updateKeyboard(dt);
   }
 
   // ── Render ──

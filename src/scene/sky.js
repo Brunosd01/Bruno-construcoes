@@ -38,32 +38,36 @@ export function createStars(isLite = false) {
     uniforms: {
       uTime: { value: 0 },
       uTwinkleSpeed: { value: STARS.twinkleSpeed },
+      uBrightness: { value: STARS.brightness },
+      uSizeScale: { value: STARS.sizeScale },
     },
     vertexShader: /* glsl */ `
       attribute float aSize;
       attribute float aPhase;
       uniform float uTime;
       uniform float uTwinkleSpeed;
+      uniform float uSizeScale;
       varying float vAlpha;
 
       void main() {
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_Position = projectionMatrix * mvPosition;
-        gl_PointSize = aSize * (200.0 / -mvPosition.z);
+        gl_PointSize = aSize * (uSizeScale / -mvPosition.z);
 
         // Cintilação
-        float twinkle = sin(uTime * uTwinkleSpeed + aPhase) * 0.3 + 0.7;
+        float twinkle = sin(uTime * uTwinkleSpeed + aPhase) * 0.2 + 0.8;
         vAlpha = twinkle;
       }
     `,
     fragmentShader: /* glsl */ `
       varying float vAlpha;
+      uniform float uBrightness;
 
       void main() {
         // Ponto circular suave
         float dist = length(gl_PointCoord - 0.5);
         if (dist > 0.5) discard;
-        float alpha = smoothstep(0.5, 0.1, dist) * vAlpha;
+        float alpha = smoothstep(0.5, 0.1, dist) * vAlpha * uBrightness;
         gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
       }
     `,

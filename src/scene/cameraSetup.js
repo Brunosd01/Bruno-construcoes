@@ -108,7 +108,68 @@ export function setupCamera(renderer) {
     }
   };
 
+  const buildingFocus = new THREE.Vector3(0, targetY, 0);
+  let wrapTransition = null;
+
+  // Mantém a câmera acima do chão sem impedir que ela desça até a altura da rua.
+  const updateGroundLimit = () => {
+    const distance = Math.max(camera.position.distanceTo(controls.target), 0.001);
+    const verticalRatio = THREE.MathUtils.clamp(
+      (CAMERA.groundClearance - controls.target.y) / distance,
+      -1,
+      1
+    );
+    controls.maxPolarAngle = Math.min(
+      CAMERA.orbitMaxPolar,
+      Math.acos(verticalRatio)
+    );
+  };
+
+  /** Reinicia suavemente a câmera no enquadramento inicial quando ela se afasta demais. */
+  controls.updateCamera = (delta) => {
+    if (wrapTransition) {
+      wrapTransition.elapsed = Math.min(
+        wrapTransition.elapsed + delta,
+        CAMERA.wrapDuration
+      );
+      const t = wrapTransition.elapsed / CAMERA.wrapDuration;
+      const eased = t * t * (3 - 2 * t);
+      controls.wrapFade = t < 0.5
+        ? 1 - (t * 2) ** 2 * (3 - 2 * t * 2)
+        : ((t - 0.5) * 2) ** 2 * (3 - 2 * (t - 0.5) * 2);
+
+      if (!wrapTransition.shifted && t >= 0.5) {
+        controls.reset();
+        wrapTransition.shifted = true;
+        updateGroundLimit();
+      }
+
+      if (t >= 1) {
+        controls.wrapFade = 1;
+        controls.enabled = true;
+        wrapTransition = null;
+        updateGroundLimit();
+        controls.update();
+      }
+      return;
+    }
+
+    controls.updateKeyboard(delta);
+    updateGroundLimit();
+    controls.update();
+
+    if (camera.position.distanceTo(buildingFocus) > CAMERA.wrapDistance) {
+      wrapTransition = {
+        elapsed: 0,
+        shifted: false,
+      };
+      controls.wrapFade = 1;
+      controls.enabled = false;
+    }
+  };
+
   controls.update();
+  controls.saveState();
 
   return { camera, controls };
 }

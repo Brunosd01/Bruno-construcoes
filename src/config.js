@@ -24,11 +24,14 @@ export const CAMERA = {
   initialDistance: 35,     // Distância inicial da câmera ao prédio
   initialAngleY: 0.25,    // Ângulo vertical inicial (rad)
   orbitDamping: 0.08,     // Inércia/damping da órbita
-  orbitMaxPolar: Math.PI * 0.495,  // Não passa abaixo do chão
+  orbitMaxPolar: Math.PI * 0.95,   // A órbita desce até perto do chão
   orbitMinPolar: 0.02,             // Quase reto para cima
   orbitMaxAzimuth: Infinity,       // Órbita livre em 360°
   zoomMin: 0.5,           // Zoom livre (permite chegar bem perto)
   zoomMax: 500,           // Zoom livre (permite enquadramento amplo)
+  groundClearance: 0.35,  // Altura mínima da câmera em relação ao chão
+  wrapDistance: 140,      // Distância que reinicia a câmera no enquadramento inicial
+  wrapDuration: 0.8,      // Duração do fade durante o retorno ao início (s)
   autoRotate: false,      // Rotação automática (padrão: desligada)
   autoRotateSpeed: 0.1,   // Velocidade se ligada
   entryAnimDuration: 2.0, // Duração da animação de entrada (s)
@@ -55,6 +58,8 @@ export const STARS = {
   radius: 180,                // Raio do domo
   minSize: 0.3,
   maxSize: 1.5,
+  brightness: 1.6,
+  sizeScale: 320,
   twinkleSpeed: 0.5,          // Velocidade da cintilação
 };
 
@@ -101,10 +106,12 @@ export const SIDEWALK = {
 };
 
 export const POSTS = {
-  height: 4.5,                // Altura dos postes
-  armLength: 1.0,             // Comprimento do braço curvo
-  offsetX: 2.5,               // Distância lateral do centro da porta
-  haloRadius: 3.0,            // Raio do halo de luz
+  height: 4.3,                // Altura dos postes
+  armLength: 0.9,             // Comprimento do braço curvo
+  offsetX: 2.6,               // Distância lateral do centro da porta
+  haloRadius: 2.5,            // Raio do halo de luz
+  hitboxRadius: 0.45,         // Raio clicável do mastro
+  lampHitboxRadius: 1.0,      // Raio clicável da luminária
 };
 
 export const TRASHCAN = {

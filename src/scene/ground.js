@@ -142,7 +142,7 @@ export function createPost(side = 1, zOffset = 3.0) {
   const armGeo = new THREE.BufferGeometry().setFromPoints(armPts);
   group.add(new THREE.Line(armGeo, mat));
 
-  // Lâmpada (pequeno losango no topo)
+  // Lâmpada (pequeno losango no topo com material próprio)
   const lampY = height - 0.2;
   const lampX = -side * armLength;
   const lampGeo = new THREE.BufferGeometry().setFromPoints([
@@ -152,7 +152,13 @@ export function createPost(side = 1, zOffset = 3.0) {
     new THREE.Vector3(lampX + 0.1, lampY - 0.2, 0),
     new THREE.Vector3(lampX, lampY, 0),
   ]);
-  group.add(new THREE.Line(lampGeo, mat));
+  const lampMat = new THREE.LineBasicMaterial({
+    color: 0xfff0d0,
+    transparent: true,
+    opacity: 0.95,
+  });
+  const lampLines = new THREE.Line(lampGeo, lampMat);
+  group.add(lampLines);
 
   // Halo de luz (sprite)
   const canvas = document.createElement('canvas');
@@ -160,8 +166,9 @@ export function createPost(side = 1, zOffset = 3.0) {
   canvas.height = 64;
   const ctx = canvas.getContext('2d');
   const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gradient.addColorStop(0, 'rgba(255,240,208,0.4)');
-  gradient.addColorStop(0.4, 'rgba(255,240,208,0.1)');
+  gradient.addColorStop(0, 'rgba(255,240,208,0.5)');
+  gradient.addColorStop(0.35, 'rgba(255,240,208,0.18)');
+  gradient.addColorStop(0.7, 'rgba(255,240,208,0.04)');
   gradient.addColorStop(1, 'rgba(255,240,208,0)');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 64, 64);
@@ -182,15 +189,43 @@ export function createPost(side = 1, zOffset = 3.0) {
   // Posicionar o poste avançado para a frente da fachada
   group.position.set(x, 0, frontZ + zOffset);
 
-  // Hitbox invisível para interação
-  const hitGeo = new THREE.CylinderGeometry(0.4, 0.4, height, 6);
-  const hitMat = new THREE.MeshBasicMaterial({ visible: false });
-  const hitbox = new THREE.Mesh(hitGeo, hitMat);
-  hitbox.position.set(0, height / 2, 0);
-  hitbox.userData = { type: 'post', side, zOffset };
-  group.add(hitbox);
+  // Hitbox ampla: cobre tanto o mastro vertical quanto a cabeça com o halo de luz
+  const hitMat = new THREE.MeshBasicMaterial({
+    visible: false,
+    side: THREE.DoubleSide,
+  });
 
-  return { group, haloMat, haloSprite, hitbox, on: true };
+  const poleHitbox = new THREE.Mesh(
+    new THREE.CylinderGeometry(POSTS.hitboxRadius, POSTS.hitboxRadius, height, 8),
+    hitMat
+  );
+  poleHitbox.position.set(0, height / 2, 0);
+
+  const lampHitbox = new THREE.Mesh(
+    new THREE.SphereGeometry(POSTS.lampHitboxRadius, 8, 8),
+    hitMat
+  );
+  lampHitbox.position.set(lampX, lampY - 0.15, 0);
+
+  const postObj = {
+    group,
+    haloMat,
+    haloSprite,
+    lampMat,
+    lampLines,
+    hitbox: poleHitbox,
+    hitboxes: [poleHitbox, lampHitbox],
+    on: true,
+    side,
+    zOffset,
+  };
+
+  poleHitbox.userData = { type: 'post', post: postObj, side, zOffset };
+  lampHitbox.userData = { type: 'post', post: postObj, side, zOffset };
+  group.add(poleHitbox);
+  group.add(lampHitbox);
+
+  return postObj;
 }
 
 /**

@@ -37,12 +37,12 @@ npm run validate
 
 ## 🛠️ Versões utilizadas
 
-| Ferramenta | Versão |
-|---|---|
-| Node.js | v24.20.0 (ver `.nvmrc`) |
-| npm | 11.x |
-| Vite | ~6.x |
-| Three.js | ~0.175.x |
+| Ferramenta | Versão                  |
+| ---------- | ----------------------- |
+| Node.js    | v24.20.0 (ver `.nvmrc`) |
+| npm        | 11.x                    |
+| Vite       | ~6.x                    |
+| Three.js   | ~0.175.x                |
 
 > Validado em outubro/2026.
 
@@ -51,8 +51,8 @@ npm run validate
 ```
 /apartamentos          → JSONs dos moradores (um por pessoa)
   /_modelo             → Exemplo para copiar (ignorado pelo site)
-  /ana-souza           → Pasta de um morador
-    ana-souza.json
+  /hiago           → Pasta de um morador
+    hiago.json
 /.github
   pull_request_template.md
   /workflows
@@ -88,6 +88,7 @@ Vá em **Settings → Branches → Add rule** para a branch `main`:
 ### GitHub — Actions em PRs de fork
 
 O primeiro PR de alguém que nunca contribuiu precisa que o dono aprove a execução do Actions:
+
 - Vá em **Settings → Actions → General → Fork pull request workflows**
 - Selecione **"Require approval for first-time contributors"**
 
@@ -111,4 +112,5 @@ O primeiro PR de alguém que nunca contribuiu precisa que o dono aprove a execu�
 ## 📄 Licença
 
 Projeto educacional. Use à vontade.
+
 # predio
