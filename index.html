@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Prédio 3D em Linhas Brancas</title>
+  <meta name="description" content="Um prédio 3D colaborativo em wireframe: cada morador acende uma luz ao enviar seu Pull Request." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🏢</text></svg>" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Acessibilidade: lista de moradores para leitores de tela -->
+  <div class="sr-only" role="complementary" aria-label="Lista de moradores do prédio">
+    <h2>Moradores</h2>
+    <ul id="sr-moradores"></ul>
+  </div>
+
+  <!-- Fallback se WebGL não estiver disponível -->
+  <noscript>
+    <div class="webgl-fallback" style="display:flex">
+      Este site precisa de JavaScript para funcionar.<br>
+      Ative o JavaScript no navegador e recarregue a página.
+    </div>
+  </noscript>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "predio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Prédio 3D colaborativo em wireframe — cada morador acende uma luz por Pull Request.",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "validate": "node scripts/validate.js",
+    "prebuild": "node scripts/validate.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "three": "~0.175.0"
+  }
+}
